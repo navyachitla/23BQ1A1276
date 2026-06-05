@@ -273,4 +273,92 @@ SELECT DISTINCT student_id
 FROM notifications
 WHERE notification_type = 'Placement'
 AND created_at >= NOW() - INTERVAL '7 days';
-```
+
+# Stage 4
+
+## Problem
+
+Currently notifications are fetched from the database every time a student loads a page. As the number of students and notifications grows, the database receives a large number of requests which can impact performance and user experience.
+
+---
+
+## Solution 1: Redis Caching
+
+Store frequently accessed notifications in Redis.
+
+### Advantages
+
+1. Very fast access time.
+2. Reduces database load.
+3. Improves response time.
+
+### Tradeoffs
+
+1. Additional infrastructure is required.
+2. Cache invalidation must be managed properly.
+
+---
+
+## Solution 2: Pagination
+
+Instead of loading all notifications, load a limited number at a time.
+
+Example:
+
+GET /notifications?page=1&limit=20
+
+### Advantages
+
+1. Smaller response size.
+2. Faster API responses.
+3. Lower database load.
+
+### Tradeoffs
+
+1. Multiple requests may be required to view all notifications.
+
+---
+
+## Solution 3: WebSockets
+
+Use WebSockets to push new notifications to users instead of repeatedly requesting notifications from the server.
+
+### Advantages
+
+1. Real-time updates.
+2. Fewer database queries.
+3. Better user experience.
+
+### Tradeoffs
+
+1. More complex implementation.
+2. Requires connection management.
+
+---
+
+## Solution 4: Database Read Replicas
+
+Create read replicas to handle read operations.
+
+### Advantages
+
+1. Reduces load on the primary database.
+2. Improves scalability.
+
+### Tradeoffs
+
+1. Increased infrastructure cost.
+2. Possible replication delay.
+
+---
+
+## Recommended Approach
+
+A combination of:
+
+1. Redis Caching
+2. Pagination
+3. WebSockets
+4. Read Replicas
+
+would provide the best performance and scalability for the notification system.

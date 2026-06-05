@@ -362,3 +362,23 @@ A combination of:
 4. Read Replicas
 
 would provide the best performance and scalability for the notification system.
+
+#Stage 5
+function notify_all(student_ids, message):
+
+    notification_id = save_notification_to_db(message)
+
+    for student_id in student_ids:
+        queue.publish({
+            "student_id": student_id,
+            "notification_id": notification_id
+        })
+
+
+worker consume(message):
+
+    try:
+        send_email(message.student_id, message.notification_id)
+        update_status(message, "SUCCESS")
+    except error:
+        retry(message) or send_to_dead_letter_queue(message)

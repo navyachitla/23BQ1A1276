@@ -188,3 +188,89 @@ SELECT COUNT(*)
 FROM notifications
 WHERE student_id = 101
 AND is_read = false;
+
+# Stage 3
+
+## Analysis of Existing Query
+
+Given Query:
+
+```sql
+SELECT *
+FROM notifications
+WHERE studentID = 1042
+AND isRead = false
+ORDER BY createdAt ASC;
+```
+
+### Is the Query Accurate?
+
+The query correctly returns unread notifications for a specific student. However, it is not optimized for large datasets.
+
+### Why is it Slow?
+
+1. Uses SELECT * which fetches unnecessary columns.
+2. No LIMIT clause is used.
+3. Database may scan millions of rows.
+4. Sorting using ORDER BY adds extra cost.
+5. No suitable index is mentioned.
+
+### Improved Query
+
+```sql
+SELECT notification_id,
+       notification_type,
+       message,
+       created_at
+FROM notifications
+WHERE student_id = 1042
+AND is_read = false
+ORDER BY created_at DESC
+LIMIT 50;
+```
+
+### Recommended Index
+
+```sql
+CREATE INDEX idx_student_read_created
+ON notifications(student_id, is_read, created_at DESC);
+```
+
+### Computation Cost
+
+Without Index:
+
+O(N)
+
+With Index:
+
+O(log N + K)
+
+where K is the number of matching notifications.
+
+---
+
+## Should We Add Indexes on Every Column?
+
+No.
+
+Adding indexes on every column is not a good strategy because:
+
+1. More storage space is required.
+2. Insert operations become slower.
+3. Update operations become slower.
+4. Delete operations become slower.
+5. Many indexes may never be used.
+
+Indexes should only be created on columns that are frequently searched or sorted.
+
+---
+
+## Query to Find Students Who Received Placement Notifications in the Last 7 Days
+
+```sql
+SELECT DISTINCT student_id
+FROM notifications
+WHERE notification_type = 'Placement'
+AND created_at >= NOW() - INTERVAL '7 days';
+```
